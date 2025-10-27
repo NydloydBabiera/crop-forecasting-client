@@ -49,11 +49,11 @@ const SensorValue = () => {
       value: `${sensorData.humidity}%`,
       color: "bg-green-500",
     },
-    // {
-    //   title: "Soil Moisture",
-    //   value: `${sensorData.soil_moisture}%`,
-    //   color: "bg-purple-500",
-    // },
+    {
+      title: "Soil Moisture",
+      value: `${sensorData.soil_moisture}%`,
+      color: "bg-purple-500",
+    },
     // { title: "NPK", value: `${sensorData.npk} mg/kg`, color: "bg-red-500" },
   ];
 
