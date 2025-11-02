@@ -10,7 +10,7 @@ const SensorValue = () => {
   });
   const socketRef = useRef(null);
   const apiUrl = import.meta.env.VITE_API_URL;
-  
+
   useEffect(() => {
     if (!socketRef.current) {
       socketRef.current = io(apiUrl, {
@@ -54,12 +54,14 @@ const SensorValue = () => {
       value: `${sensorData.soil_moisture}%`,
       color: "bg-purple-500",
     },
-    // { title: "NPK", value: `${sensorData.npk} mg/kg`, color: "bg-red-500" },
+    { title: "NPK", value: `${sensorData.npk} mg/kg`, color: "bg-red-500" },
   ];
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Crop Name</h1>
+      <h1 className="text-2xl font-bold mb-6">{`${
+        sensorData.npk === 0 ? "Forecasting crop..." : sensorData?.cropPrediction?.crop
+      }`}</h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {cards.map((card, index) => (
           <div
