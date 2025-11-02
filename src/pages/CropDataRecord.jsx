@@ -1,17 +1,45 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
 
 const CropDataRecord = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   // Example dummy data (50 rows)
-  const data = Array.from({ length: 15 }, (_, i) => ({
-    crop: `Crop ${i}`,
-    temp: `${(Math.random() * 35).toFixed(2)} °C`,
-    humidity: `${(Math.random() * 85).toFixed(2)} %`,
-    moisture: `${(Math.random() * 100).toFixed(2)} %`,
-    NPK: `${(Math.random() * 185).toFixed(2)} %`,
-  }));
+  // const data = Array.from({ length: 15 }, (_, i) => ({
+  //   crop: `Crop ${i}`,
+  //   temp: `${(Math.random() * 35).toFixed(2)} °C`,
+  //   humidity: `${(Math.random() * 85).toFixed(2)} %`,
+  //   moisture: `${(Math.random() * 100).toFixed(2)} %`,
+  //   NPK: `${(Math.random() * 185).toFixed(2)} %`,
+  // }));
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/getAllCropForecast`);
+      setData(response.data); // Set the fetched data
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setError("Error fetching data", err.message);
+      setLoading(false);
+      setData([]);
+    }
+  };
+  // Fetch data from the API
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Conditional rendering for loading and error states
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
 
   // Pagination logic
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -32,16 +60,24 @@ const CropDataRecord = () => {
               <th className="py-3 px-4 border-b">Humidity</th>
               <th className="py-3 px-4 border-b">Soil Moisture</th>
               <th className="py-3 px-4 border-b">NPK</th>
+              <th className="py-3 px-4 border-b">Record Date</th>
             </tr>
           </thead>
           <tbody>
             {currentRows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                <td className="py-2 px-4 border-b">{row.crop}</td>
-                <td className="py-2 px-4 border-b">{row.temp}</td>
+              <tr key={row.crop_id} className="hover:bg-gray-50">
+                <td className="py-2 px-4 border-b">{row.crop_name}</td>
+                <td className="py-2 px-4 border-b">{row.temperature}</td>
                 <td className="py-2 px-4 border-b">{row.humidity}</td>
-                <td className="py-2 px-4 border-b">{row.moisture}</td>
-                <td className="py-2 px-4 border-b">{row.NPK}</td>
+                <td className="py-2 px-4 border-b">{row.soil_moisture}</td>
+                <td className="py-2 px-4 border-b">{row.npk}</td>
+                <td className="py-2 px-4 border-b">
+                {formatInTimeZone(row.created_at, "Asia/Manila", "MMM dd, yyyy hh:mm:ss a")}
+                  {/* {format(
+                    toZonedTime(row.created_at,"Asia/Manila"),
+                    "MMM dd, yyyy HH:mm:ss"
+                  )} */}
+                </td>
               </tr>
             ))}
           </tbody>
