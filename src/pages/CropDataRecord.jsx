@@ -1,20 +1,22 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
+import moment from "moment";
+import DateRangePicker from "../components/DateRangePicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CropDataRecord = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Example dummy data (50 rows)
-  // const data = Array.from({ length: 15 }, (_, i) => ({
-  //   crop: `Crop ${i}`,
-  //   temp: `${(Math.random() * 35).toFixed(2)} °C`,
-  //   humidity: `${(Math.random() * 85).toFixed(2)} %`,
-  //   moisture: `${(Math.random() * 100).toFixed(2)} %`,
-  //   NPK: `${(Math.random() * 185).toFixed(2)} %`,
-  // }));
+
+  // State to hold the selected date range
+  const [dateFilter, setDateFilter] = useState({
+    startDate: null,
+    endDate: null,
+  });
+
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +34,7 @@ const CropDataRecord = () => {
       setData([]);
     }
   };
+
   // Fetch data from the API
   useEffect(() => {
     fetchData();
@@ -41,16 +44,39 @@ const CropDataRecord = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
-  // Pagination logic
+  // Function to update the date filter state, passed to DateRangePicker
+  const handleDateRangeChange = (startDate, endDate) => {
+    // We set the end date to the end of the day to include all records on that day
+    const endOfDay = endDate ? moment(endDate).endOf("day").toDate() : null;
+    setDateFilter({ startDate, endDate: endOfDay });
+  };
+  const filteredData = data.filter((item) => {
+    const recordMoment = moment(item.created_at).local();
+  
+    if (!dateFilter.startDate || !dateFilter.endDate) {
+      return true; // If no filter is applied, return all data
+    }
+  
+    const startMoment = moment(dateFilter.startDate).startOf("day");
+    const endMoment = moment(dateFilter.endDate).endOf("day");
+  
+    return (
+      recordMoment.isSameOrAfter(startMoment, "day") &&
+      recordMoment.isSameOrBefore(endMoment, "day")
+    );
+  });
+
+  // Pagination logic (use filtered data for pagination)
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = data.slice(indexOfFirstRow, indexOfLastRow);
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  const totalPages = Math.ceil(data.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   return (
     <div className="p-4 mt-24">
       <p className="text-2xl uppercase">Crop Data Forecast</p>
+      <DateRangePicker onDateRangeChange={handleDateRangeChange} />
       <div className="overflow-x-auto rounded-lg">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead>
@@ -72,11 +98,10 @@ const CropDataRecord = () => {
                 <td className="py-2 px-4 border-b">{row.soil_moisture}</td>
                 <td className="py-2 px-4 border-b">{row.npk}</td>
                 <td className="py-2 px-4 border-b">
-                {formatInTimeZone(row.created_at, "Asia/Manila", "MMM dd, yyyy hh:mm:ss a")}
-                  {/* {format(
-                    toZonedTime(row.created_at,"Asia/Manila"),
+                  {format(
+                    toZonedTime(row.created_at, "Asia/Manila"),
                     "MMM dd, yyyy HH:mm:ss"
-                  )} */}
+                  )}
                 </td>
               </tr>
             ))}
