@@ -59,9 +59,13 @@ const SensorValue = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{`${
+      {/* this line wil display multiple crops predicted by the */}
+      <h1 className="text-2xl font-bold mb-6">
+      {!sensorData?.cropPrediction?.crops ? sensorData?.cropPrediction?.crop : sensorData?.cropPrediction?.crops?.join(", ")}
+      </h1>
+      {/* <h1 className="text-2xl font-bold mb-6">{`${
         sensorData.npk === 0 ? "Forecasting crop..." : sensorData?.cropPrediction?.crop
-      }`}</h1>
+      }`}</h1> */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {cards.map((card, index) => (
           <div

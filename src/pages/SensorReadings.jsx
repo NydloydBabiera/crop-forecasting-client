@@ -82,7 +82,7 @@ const SensorReadings = () => {
               <th className="py-3 px-4 border-b">Humidity</th>
               <th className="py-3 px-4 border-b">Soil Moisture</th>
               <th className="py-3 px-4 border-b">NPK</th>
-              <th className="py-3 px-4 border-b">Record Date</th>
+            <th className="py-3 px-4 border-b">Record Date</th>
             </tr>
           </thead>
           <tbody>

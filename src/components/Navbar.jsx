@@ -20,6 +20,9 @@ export default function Navbar() {
           <a href="/sensorReadings" className="hover:text-gray-300">
             Readings
           </a>
+          <a href="/Reports" className="hover:text-gray-300">
+            Reports
+          </a>
         </div>
 
         {/* Mobile menu button */}
@@ -78,12 +81,11 @@ export default function Navbar() {
           >
             Table
           </a>
-          <a
-            href="#records"
-            className="block px-4 py-2 hover:bg-gray-600"
-            onClick={() => setIsOpen(false)}
-          >
-            Records
+          <a href="/sensorReadings" className="hover:text-gray-300">
+            Readings
+          </a>
+          <a href="/Reports" className="hover:text-gray-300">
+            Reports
           </a>
         </div>
       )}

@@ -12,6 +12,7 @@ import Mainlayout from "./layouts/Mainlayout";
 import Dashboard from "./pages/Dashboard";
 import CropDataRecord from "./pages/CropDataRecord";
 import SensorReadings from "./pages/SensorReadings";
+import Reports from "./pages/Reports";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,6 +20,7 @@ const router = createBrowserRouter(
       <Route index path="/" element={<Dashboard />}></Route>
       <Route path="/cropRecord" element={<CropDataRecord />} />
       <Route path="/sensorReadings" element={<SensorReadings />} />
+      <Route path="/reports" element={<Reports />} />
     </Route>
   )
 );
