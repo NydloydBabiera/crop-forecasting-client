@@ -17,8 +17,8 @@ export default function Navbar() {
           <a href="/cropRecord" className="hover:text-gray-300">
             Table
           </a>
-          <a href="#records" className="hover:text-gray-300">
-            Records
+          <a href="/sensorReadings" className="hover:text-gray-300">
+            Readings
           </a>
         </div>
 
