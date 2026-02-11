@@ -3,13 +3,85 @@ import DateRangePicker from "../components/DateRangePicker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import DateRangeCombobox from "../components/DateRangeCombobox";
-
+const crops = [
+  {
+    name: "Eggplant",
+    temperature: [25, 32],
+    humidity: [70, 85],
+    soilMoisture: [60, 70],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Sweet Potatoes",
+    temperature: [21, 28],
+    humidity: [70, 85],
+    soilMoisture: [60, 70],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Okra",
+    temperature: [25, 35],
+    humidity: [70, 90],
+    soilMoisture: [60, 70],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Ampalaya",
+    temperature: [24, 30],
+    humidity: [70, 85],
+    soilMoisture: [60, 70],
+    npk: [4.2, 185],
+  },
+  {
+    name: "String Beans",
+    temperature: [22, 30],
+    humidity: [70, 80],
+    soilMoisture: [55, 65],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Potatoes",
+    temperature: [18, 25],
+    humidity: [70, 80],
+    soilMoisture: [65, 75],
+    npk: [8.5, 185],
+  },
+  {
+    name: "Corn",
+    temperature: [24, 30],
+    humidity: [70, 80],
+    soilMoisture: [65, 75],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Rice",
+    temperature: [24, 35],
+    humidity: [80, 90],
+    soilMoisture: [80, 90],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Tomatoes",
+    temperature: [21, 27],
+    humidity: [70, 85],
+    soilMoisture: [60, 70],
+    npk: [4.2, 185],
+  },
+  {
+    name: "Mung Beans",
+    temperature: [25, 30],
+    humidity: [70, 85],
+    soilMoisture: [50, 60],
+    npk: [4.2, 185],
+  },
+];
 const Reports = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const now = new Date();
   const [dateRange, setDateRange] = useState({
-    startDate: null,
-    endDate: null,
+    startDate: new Date(now.setHours(0, 0, 0, 0)),
+    endDate: new Date(now.setHours(23, 59, 59, 999)),
   });
 
   // 🔹 Called when date range changes
@@ -75,25 +147,87 @@ const Reports = () => {
         "Humidity (%)",
         "Soil Moisture",
         "NPK",
-        "Timestamp",
       ];
 
-      const tableRows = data.map((row) => [
-        row.crop_name,
-        row.temperature,
-        row.humidity,
-        row.soil_moisture,
-        row.npk,
-        new Date(row.created_at).toLocaleString(),
-      ]);
+      // const computeOverallLabel = (row) => {
+      //   if (row.soil_moisture > 7 && row.humidity > 70) {
+      //     return "Most Suitable Crop";
+      //   }
+      //   return "Average Conditions";
+      // };
+      const inRange = (val, [min, max]) => val >= min && val <= max;
+      function cropForecast(sensorData) {
+        const {temperature, humidity, soil_moisture, npk } = sensorData;
+      
+        let bestMatch = null;
+        let highestScore = 80;
+        let cropPredictions = [];
+      
+        crops.forEach(async (crop) => {
+          let score = 0;
+          if (inRange(temperature, crop.temperature)) score += 25;
+          if (inRange(humidity, crop.humidity)) score += 25;
+          if (inRange(soil_moisture, crop.soilMoisture)) score += 25;
+          if (inRange(npk, crop.npk)) score += 25;
+      
+          if (score > highestScore) {
+            highestScore = score;
+            bestMatch = crop.name;
+            cropPredictions.push(crop.name);
+      
+          }
+        });
+        return bestMatch
+            ? { crop: bestMatch, crops:cropPredictions, matchPercent: highestScore }
+            : { crop: "No suitable crop found", matchPercent: 0 };
+      }
+
+      const tableRows = data.map((row) => {
+        let extraLabel = "";
+      
+        if (row.row_type === "OVERALL_AVG") {
+          extraLabel = cropForecast(row)?.crop;
+        }
+      
+        return {
+          cells: [
+            extraLabel || row.crop_name || "",
+            row.temperature,
+            row.humidity,
+            row.soil_moisture,
+            row.npk,
+            row.created_at ? new Date(row.created_at).toLocaleString() : "",
+          ],
+          rowType: row.row_type,
+          extraLabel, // 👈 stored if you need it later
+        };
+      });
 
       autoTable(doc, {
         startY: 40,
         head: [tableColumn],
-        body: tableRows,
+        body: tableRows.map(r => r.cells),
+      
         theme: "grid",
         styles: { fontSize: 9 },
         headStyles: { fillColor: [34, 197, 94] },
+      
+        didParseCell: function (data) {
+          const rowIndex = data.row.index;
+          const rowType = tableRows[rowIndex]?.rowType;
+      
+          // 🟨 Crop Average
+          if (rowType === "CROP_AVG") {
+            data.cell.styles.fillColor = [253, 224, 71];
+            data.cell.styles.fontStyle = "bold";
+          }
+      
+          // 🟩 Overall Average
+          if (rowType === "OVERALL_AVG") {
+            data.cell.styles.fillColor = [134, 239, 172];
+            data.cell.styles.fontStyle = "bold";
+          }
+        },
       });
 
       const blob = doc.output("blob");

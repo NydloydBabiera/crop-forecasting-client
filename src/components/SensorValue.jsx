@@ -61,7 +61,7 @@ const SensorValue = () => {
     <div className="p-6">
       {/* this line wil display multiple crops predicted by the */}
       <h1 className="text-2xl font-bold mb-6">
-      {!sensorData?.cropPrediction?.crops ? sensorData?.cropPrediction?.crop : sensorData?.cropPrediction?.crops?.join(", ")}
+      {!sensorData?.cropPrediction ? "Reading in progress..." : !sensorData?.cropPrediction?.crops ? sensorData?.cropPrediction?.crop : sensorData?.cropPrediction?.crops?.join(", ")}
       </h1>
       {/* <h1 className="text-2xl font-bold mb-6">{`${
         sensorData.npk === 0 ? "Forecasting crop..." : sensorData?.cropPrediction?.crop
