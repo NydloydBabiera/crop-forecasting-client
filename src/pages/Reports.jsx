@@ -186,7 +186,7 @@ const Reports = () => {
         let extraLabel = "";
       
         if (row.row_type === "OVERALL_AVG") {
-          extraLabel = cropForecast(row)?.crop;
+          extraLabel = `Most suitable crop/s: ${cropForecast(row)?.crop}`;
         }
       
         return {
