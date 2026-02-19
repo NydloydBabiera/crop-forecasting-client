@@ -82,7 +82,7 @@ const SensorReadings = () => {
               <th className="py-3 px-4 border-b">Humidity</th>
               <th className="py-3 px-4 border-b">Soil Moisture</th>
               <th className="py-3 px-4 border-b">NPK</th>
-            <th className="py-3 px-4 border-b">Record Date</th>
+              <th className="py-3 px-4 border-b">Record Date</th>
             </tr>
           </thead>
           <tbody>
@@ -114,19 +114,36 @@ const SensorReadings = () => {
           Prev
         </button>
 
-        {[...Array(totalPages)].map((_, i) => (
-          <button
-            key={i}
-            className={`px-3 py-1 rounded ${
-              currentPage === i + 1
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
-            }`}
-            onClick={() => setCurrentPage(i + 1)}
-          >
-            {i + 1}
-          </button>
-        ))}
+        {(() => {
+          const maxVisiblePages = 10;
+          let startPage = Math.max(
+            1,
+            currentPage - Math.floor(maxVisiblePages / 2)
+          );
+          let endPage = startPage + maxVisiblePages - 1;
+
+          if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+          }
+
+          return Array.from(
+            { length: endPage - startPage + 1 },
+            (_, i) => startPage + i
+          ).map((page) => (
+            <button
+              key={page}
+              className={`px-3 py-1 rounded ${
+                currentPage === page
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </button>
+          ));
+        })()}
 
         <button
           className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
