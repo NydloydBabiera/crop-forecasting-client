@@ -171,14 +171,13 @@ const Reports = () => {
           if (inRange(npk, crop.npk)) score += 25;
       
           if (score > highestScore) {
-            highestScore = score;
             bestMatch = crop.name;
             cropPredictions.push(crop.name);
       
           }
         });
         return bestMatch
-            ? { crop: bestMatch, crops:cropPredictions, matchPercent: highestScore }
+            ? { crop: cropPredictions.length ? cropPredictions.join(", ") : "", crops:cropPredictions, matchPercent: highestScore }
             : { crop: "No suitable crop found", matchPercent: 0 };
       }
 
