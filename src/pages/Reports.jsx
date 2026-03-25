@@ -3,6 +3,7 @@ import DateRangePicker from "../components/DateRangePicker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import DateRangeCombobox from "../components/DateRangeCombobox";
+import FarmerInformation from "../components/FarmerInformation";
 const crops = [
   {
     name: "Eggplant",
@@ -84,6 +85,9 @@ const Reports = () => {
     endDate: new Date(now.setHours(23, 59, 59, 999)),
   });
 
+  const [selectedFarmer, setSelectedFarmer] = useState(null);
+  console.log("🚀 ~ Reports ~ selectedFarmer:", selectedFarmer);
+
   // 🔹 Called when date range changes
   const handleDateChange = (start, end) => {
     setDateRange({
@@ -94,12 +98,12 @@ const Reports = () => {
 
   const formatDate = (date) => {
     if (!date) return null;
-  
+
     const d = new Date(date);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
-  
+
     return `${year}-${month}-${day}`;
   };
 
@@ -116,6 +120,7 @@ const Reports = () => {
       const query = new URLSearchParams({
         start: formatDate(dateRange.startDate),
         end: formatDate(dateRange.endDate),
+        farmerId: selectedFarmer?.farmer_information_id || "", // Include farmer ID if selected
       }).toString();
 
       const res = await fetch(
@@ -127,12 +132,17 @@ const Reports = () => {
       const doc = new jsPDF();
 
       // 🧾 Header
+      const pageWidth = doc.internal.pageSize.getWidth();
+
       doc.setFontSize(18);
       doc.text("Sensor Reading Report", 14, 20);
 
+      // LEFT SIDE (date info)
       doc.setFontSize(11);
       doc.text(
-        `Date Range: ${new Date(dateRange.startDate).toLocaleDateString()} - ${new Date(
+        `Date Range: ${new Date(
+          dateRange.startDate
+        ).toLocaleDateString()} - ${new Date(
           dateRange.endDate
         ).toLocaleDateString()}`,
         14,
@@ -141,6 +151,31 @@ const Reports = () => {
 
       doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 34);
 
+      // RIGHT SIDE (farmer info)
+      if (selectedFarmer) {
+        doc.setFontSize(11);
+
+        doc.text("Farmer Information", pageWidth - 14, 20, { align: "right" });
+
+        doc.setFontSize(10);
+        doc.text(`Name: ${selectedFarmer.full_name || "-"}`, pageWidth - 14, 28, {
+          align: "right",
+        });
+
+        doc.text(
+          `Address: ${selectedFarmer.address || "-"}`,
+          pageWidth - 14,
+          34,
+          { align: "right" }
+        );
+
+        doc.text(
+          `Contact: ${selectedFarmer.contact_information || "-"}`,
+          pageWidth - 14,
+          40,
+          { align: "right" }
+        );
+      }
       const tableColumn = [
         "Crop",
         "Temperature (°C)",
@@ -157,37 +192,40 @@ const Reports = () => {
       // };
       const inRange = (val, [min, max]) => val >= min && val <= max;
       function cropForecast(sensorData) {
-        const {temperature, humidity, soil_moisture, npk } = sensorData;
-      
+        const { temperature, humidity, soil_moisture, npk } = sensorData;
+
         let bestMatch = null;
         let highestScore = 80;
         let cropPredictions = [];
-      
+
         crops.forEach(async (crop) => {
           let score = 0;
           if (inRange(temperature, crop.temperature)) score += 25;
           if (inRange(humidity, crop.humidity)) score += 25;
           if (inRange(soil_moisture, crop.soilMoisture)) score += 25;
           if (inRange(npk, crop.npk)) score += 25;
-      
+
           if (score > highestScore) {
             bestMatch = crop.name;
             cropPredictions.push(crop.name);
-      
           }
         });
         return bestMatch
-            ? { crop: cropPredictions.length ? cropPredictions.join(", ") : "", crops:cropPredictions, matchPercent: highestScore }
-            : { crop: "No suitable crop found", matchPercent: 0 };
+          ? {
+              crop: cropPredictions.length ? cropPredictions.join(", ") : "",
+              crops: cropPredictions,
+              matchPercent: highestScore,
+            }
+          : { crop: "No suitable crop found", matchPercent: 0 };
       }
 
       const tableRows = data.map((row) => {
         let extraLabel = "";
-      
+
         if (row.row_type === "OVERALL_AVG") {
           extraLabel = `Most suitable crop/s: ${cropForecast(row)?.crop}`;
         }
-      
+
         return {
           cells: [
             extraLabel || row.crop_name || "",
@@ -203,24 +241,24 @@ const Reports = () => {
       });
 
       autoTable(doc, {
-        startY: 40,
+        startY: 50,
         head: [tableColumn],
-        body: tableRows.map(r => r.cells),
-      
+        body: tableRows.map((r) => r.cells),
+
         theme: "grid",
         styles: { fontSize: 9 },
         headStyles: { fillColor: [34, 197, 94] },
-      
+
         didParseCell: function (data) {
           const rowIndex = data.row.index;
           const rowType = tableRows[rowIndex]?.rowType;
-      
+
           // 🟨 Crop Average
           if (rowType === "CROP_AVG") {
             data.cell.styles.fillColor = [253, 224, 71];
             data.cell.styles.fontStyle = "bold";
           }
-      
+
           // 🟩 Overall Average
           if (rowType === "OVERALL_AVG") {
             data.cell.styles.fillColor = [134, 239, 172];
@@ -232,7 +270,6 @@ const Reports = () => {
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
-
     } catch (err) {
       console.error("Report generation failed:", err);
     } finally {
@@ -241,12 +278,20 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-4 mt-24">
+    <div className="p-4 mt-24 ">
       <p className="text-3xl uppercase font-bold mb-4">Reports</p>
 
-      {/* Pass handler to DateRangePicker */}
-      <DateRangePicker onDateRangeChange={handleDateChange} />
-      <DateRangeCombobox setDateRange={setDateRange} />
+      {/* Wrap both components */}
+      <div className="flex gap-4 items-center">
+        <DateRangePicker onDateRangeChange={handleDateChange} />
+        <DateRangeCombobox setDateRange={setDateRange} />
+        <div className="w-64">
+          <FarmerInformation
+            isReport={false}
+            onSelectedFarmer={setSelectedFarmer}
+          />
+        </div>
+      </div>
 
       <button
         onClick={generateReport}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import React from "react";
-export default function FarmerInformation() {
+export default function FarmerInformation({ isReport, onSelectedFarmer }) {
   // const users = [
   //   {
   //     id: 1,
@@ -48,7 +48,7 @@ export default function FarmerInformation() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({farmerId: farmer_id.toString()}),
+          body: JSON.stringify({ farmerId: farmer_id.toString() }),
         }
       );
       const result = await res.json();
@@ -59,6 +59,17 @@ export default function FarmerInformation() {
     }
   };
 
+  const deactivateFarmer = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/deactivateFarmer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      setUser(null);
+    } catch (error) {
+      console.error("Error deactivating farmer:", error);
+    }
+  };
   const handleAddFarmer = async () => {
     if (!tempUser) return;
 
@@ -78,6 +89,7 @@ export default function FarmerInformation() {
       const result = await res.json();
       setUser(result);
       setIsModalOpen(false);
+      onSelectedFarmer(result); 
     } catch (error) {
       console.error("Error adding farmer:", error);
     }
@@ -87,11 +99,13 @@ export default function FarmerInformation() {
     // console.log("🚀 ~ handleSelectUser ~ selectedUser:", selectedUser)
     await activateFarmer(selectedUser.farmer_information_id);
     setUser(selectedUser);
+    onSelectedFarmer(selectedUser); 
     setIsModalOpenList(false);
   };
 
   useEffect(() => {
     fetchFarmers();
+    deactivateFarmer();
   }, []);
 
   return (
@@ -117,7 +131,7 @@ export default function FarmerInformation() {
             </p>
           </div>
         ) : (
-          <p className="text-gray-500">No user selected</p>
+          <p className="text-gray-500">No Farmer selected</p>
         )}
 
         <button
@@ -128,14 +142,16 @@ export default function FarmerInformation() {
         >
           Select Farmer
         </button>
-        <button
-          onClick={() => {
-            setIsModalOpen(true);
-          }}
-          className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition"
-        >
-          Add Farmer
-        </button>
+        {isReport && (
+          <button
+            onClick={() => {
+              setIsModalOpen(true);
+            }}
+            className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition"
+          >
+            Add Farmer
+          </button>
+        )}
       </div>
 
       {/* Add Modal */}
@@ -211,7 +227,7 @@ export default function FarmerInformation() {
       {isModalOpenList && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
-            <h2 className="text-lg font-semibold mb-4">Select User</h2>
+            <h2 className="text-lg font-semibold mb-4">Select Farmer</h2>
 
             <div className="max-h-60 overflow-y-auto space-y-2">
               {farmers.map((u) => (

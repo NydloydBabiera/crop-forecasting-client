@@ -1,6 +1,6 @@
 // src/components/DateRangePicker.jsx
-import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
+import React, { useState } from "react";
+import DatePicker from "react-datepicker";
 
 /**
  * A reusable component for selecting a date range.
@@ -19,8 +19,11 @@ const DateRangePicker = ({ onDateRangeChange }) => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-      <label>Filter by Date Range:</label>
+    // <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="w-64 ">
+      <label className="block mb-1 text-sm font-medium text-gray-700">
+        Filter By Date Range
+      </label>
       <DatePicker
         selectsRange={true}
         startDate={startDate}
@@ -29,7 +32,7 @@ const DateRangePicker = ({ onDateRangeChange }) => {
         isClearable={true}
         dateFormat="MMM dd, yyyy"
         placeholderText="Select Date Range"
-        className="w-64 px-2 py-1 rounded border border-gray-300" 
+        className="w-64 px-2 py-1 rounded border border-gray-300"
       />
     </div>
   );

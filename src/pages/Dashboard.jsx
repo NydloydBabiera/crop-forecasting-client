@@ -17,7 +17,7 @@ const Dashboard = () => {
   
         {/* Farmer Info (Right) */}
         <div className="col-span-4">
-          <FarmerInformation />
+          <FarmerInformation isReport={true} />
         </div>
   
       </div>
