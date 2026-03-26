@@ -86,7 +86,6 @@ const Reports = () => {
   });
 
   const [selectedFarmer, setSelectedFarmer] = useState(null);
-  console.log("🚀 ~ Reports ~ selectedFarmer:", selectedFarmer);
 
   // 🔹 Called when date range changes
   const handleDateChange = (start, end) => {
@@ -116,28 +115,39 @@ const Reports = () => {
     try {
       setLoading(true);
 
-      // 🔥 Send dates to API
       const query = new URLSearchParams({
         start: formatDate(dateRange.startDate),
-        end: formatDate(dateRange.endDate),
-        farmerId: selectedFarmer?.farmer_information_id || "", // Include farmer ID if selected
+        end: formatDate(
+          new Date(
+            new Date(dateRange.endDate).setDate(
+              new Date(dateRange.endDate).getDate() + 1
+            )
+          )
+        ),
+        farmerId: selectedFarmer?.farmer_information_id || "",
       }).toString();
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/filterCropForecastByDate?${query}`
-      );
+      // 🔥 CALL BOTH APIs
+      const [res1, res2] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/getCropForecastReport?${query}`),
+        fetch(
+          `${import.meta.env.VITE_API_URL}/getSensorReadingsReport?${query}`
+        ),
+      ]);
 
-      const data = await res.json();
+      const data1 = await res1.json(); // detailed
+      const data2 = await res2.json(); // summary / grouped
+      console.log("🚀 ~ generateReport ~ data2:", data2);
 
       const doc = new jsPDF();
-
-      // 🧾 Header
       const pageWidth = doc.internal.pageSize.getWidth();
 
+      // =========================
+      // 📄 PAGE 1 - DETAILED DATA
+      // =========================
       doc.setFontSize(18);
       doc.text("Sensor Reading Report", 14, 20);
 
-      // LEFT SIDE (date info)
       doc.setFontSize(11);
       doc.text(
         `Date Range: ${new Date(
@@ -149,33 +159,45 @@ const Reports = () => {
         28
       );
 
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 34);
-
-      // RIGHT SIDE (farmer info)
       if (selectedFarmer) {
+        let y = 20; // starting Y position
+
         doc.setFontSize(11);
+        doc.setFont(undefined, "bold");
+        doc.text("Farmer Information", pageWidth - 14, y, { align: "right" });
 
-        doc.text("Farmer Information", pageWidth - 14, 20, { align: "right" });
-
+        doc.setFont(undefined, "normal");
         doc.setFontSize(10);
-        doc.text(`Name: ${selectedFarmer.full_name || "-"}`, pageWidth - 14, 28, {
-          align: "right",
-        });
 
+        y += 6;
         doc.text(
-          `Address: ${selectedFarmer.address || "-"}`,
-          pageWidth - 14,
-          34,
-          { align: "right" }
+          `Name: ${selectedFarmer.full_name || "-"}`,
+          pageWidth - 35,
+          y,
+          {
+            align: "right",
+          }
         );
 
+        y += 4;
+        doc.text(
+          `Address: ${selectedFarmer.address || "-"}`,
+          pageWidth - 35,
+          y,
+          {
+            align: "right",
+          }
+        );
+
+        y += 4;
         doc.text(
           `Contact: ${selectedFarmer.contact_information || "-"}`,
-          pageWidth - 14,
-          40,
+          pageWidth - 35,
+          y,
           { align: "right" }
         );
       }
+
       const tableColumn = [
         "Crop",
         "Temperature (°C)",
@@ -184,12 +206,6 @@ const Reports = () => {
         "NPK",
       ];
 
-      // const computeOverallLabel = (row) => {
-      //   if (row.soil_moisture > 7 && row.humidity > 70) {
-      //     return "Most Suitable Crop";
-      //   }
-      //   return "Average Conditions";
-      // };
       const inRange = (val, [min, max]) => val >= min && val <= max;
       function cropForecast(sensorData) {
         const { temperature, humidity, soil_moisture, npk } = sensorData;
@@ -219,7 +235,7 @@ const Reports = () => {
           : { crop: "No suitable crop found", matchPercent: 0 };
       }
 
-      const tableRows = data.map((row) => {
+      const tableRows = data1.map((row) => {
         let extraLabel = "";
 
         if (row.row_type === "OVERALL_AVG") {
@@ -241,32 +257,87 @@ const Reports = () => {
       });
 
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [tableColumn],
         body: tableRows.map((r) => r.cells),
-
-        theme: "grid",
-        styles: { fontSize: 9 },
+        styles: {
+          fontSize: 9,
+        },
         headStyles: { fillColor: [34, 197, 94] },
-
         didParseCell: function (data) {
           const rowIndex = data.row.index;
-          const rowType = tableRows[rowIndex]?.rowType;
+          const row = data1[rowIndex];
 
-          // 🟨 Crop Average
-          if (rowType === "CROP_AVG") {
-            data.cell.styles.fillColor = [253, 224, 71];
-            data.cell.styles.fontStyle = "bold";
-          }
+          const isAverage = !row.crop_name && !row.created_at; // 👈 detect avg row
 
-          // 🟩 Overall Average
-          if (rowType === "OVERALL_AVG") {
-            data.cell.styles.fillColor = [134, 239, 172];
+          if (isAverage) {
+            data.cell.styles.fillColor = [255, 255, 0]; // yellow
             data.cell.styles.fontStyle = "bold";
           }
         },
       });
 
+      // =========================
+      // 📄 PAGE 2 - SUMMARY
+      // =========================
+      doc.addPage();
+
+      doc.setFontSize(18);
+      doc.text("Summary Report", 14, 20);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [
+          ["Date Recorded", "Temperature (°C)", "Humidity (%)", "Soil Moisture", "NPK"],
+        ],
+        body: data2.map((row) => [
+          row.created_at ? new Date(row.created_at).toLocaleString() : "",
+          row.temperature,
+          row.humidity,
+          row.soil_moisture,
+          row.npk,
+        ]),
+      });
+
+      // =========================
+      // 📄 PAGE 3 - MATRIX TABLE
+      // =========================
+      doc.addPage();
+
+      doc.setFontSize(18);
+      doc.text("Crop Suitability Matrix", 14, 20);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [tableColumn],
+        body: crops.map((crop) => [
+          crop.name,
+          `${crop.temperature[0]} - ${crop.temperature[1]}`,
+          `${crop.humidity[0]} - ${crop.humidity[1]}`,
+          `${crop.soilMoisture[0]} - ${crop.soilMoisture[1]}`,
+          `${crop.npk[0]} - ${crop.npk[1]}`,
+        ]),
+      });
+
+      const pageCount = doc.getNumberOfPages();
+
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: "center" }
+        );
+      }
+
+      // =========================
+      // FINAL OUTPUT
+      // =========================
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
