@@ -30,6 +30,13 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
   const [isModalOpenList, setIsModalOpenList] = useState(false);
   const [tempUser, setTempUser] = useState(user);
   const [farmers, setFarmers] = useState([]);
+  const [value, setValue] = useState("");
+
+  const handleChange = (e) => {
+    // Remove all non-numeric characters
+    const numericValue = e.target.value.replace(/[^0-9]/g, "");
+    setValue(numericValue);
+  };
 
   const fetchFarmers = async () => {
     try {
@@ -163,7 +170,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
             <div className="space-y-3">
               <input
                 type="text"
-                placeholder="Full Name"
+                placeholder="Farm name / Farmer"
                 // value={tempUser.fullName}
                 onChange={(e) =>
                   setTempUser({ ...tempUser, fullName: e.target.value })
@@ -171,7 +178,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                 className="w-full border rounded-lg p-2"
               />
 
-              <input
+              {/* <input
                 type="text"
                 placeholder="Farm Name"
                 // value={tempUser.farmName}
@@ -179,7 +186,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                   setTempUser({ ...tempUser, farmName: e.target.value })
                 }
                 className="w-full border rounded-lg p-2"
-              />
+              /> */}
 
               <input
                 type="text"
@@ -192,7 +199,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
               />
 
               <input
-                type="text"
+                type="number"
                 placeholder="Contact Information"
                 // value={tempUser.contactInformation}
                 onChange={(e) =>
