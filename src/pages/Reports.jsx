@@ -256,8 +256,41 @@ const Reports = () => {
         };
       });
 
+      // =========================
+      // 🎨 LEGEND SECTION
+      // =========================
+      let legendY = 40; // adjust if needed (same as table start)
+
+      doc.setFontSize(11);
+      doc.setFont(undefined, "bold");
+      doc.text("Legend:", 14, legendY);
+
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(9);
+
+      legendY += 6;
+
+      // 🟡 Average Row
+      doc.setFillColor(255, 255, 0); // yellow
+      doc.rect(14, legendY - 4, 5, 5, "F"); // small color box
+      doc.text("Average / Overall Row", 22, legendY);
+
+      legendY += 6;
+
+      // // 🟢 Header Row
+      // doc.setFillColor(34, 197, 94); // green
+      // doc.rect(14, legendY - 4, 5, 5, "F");
+      // doc.text("Table Header", 22, legendY);
+
+      // legendY += 6;
+
+      // // ⚪ Normal Row
+      // doc.setFillColor(255, 255, 255); // white
+      // doc.rect(14, legendY - 4, 5, 5, "F");
+      // doc.text("Regular Data Row", 22, legendY);
+
       autoTable(doc, {
-        startY: 40,
+        startY: legendY,
         head: [tableColumn],
         body: tableRows.map((r) => r.cells),
         styles: {
@@ -288,7 +321,13 @@ const Reports = () => {
       autoTable(doc, {
         startY: 30,
         head: [
-          ["Date Recorded", "Temperature (°C)", "Humidity (%)", "Soil Moisture", "NPK"],
+          [
+            "Date Recorded",
+            "Temperature (°C)",
+            "Humidity (%)",
+            "Soil Moisture",
+            "NPK",
+          ],
         ],
         body: data2.map((row) => [
           row.created_at ? new Date(row.created_at).toLocaleString() : "",
