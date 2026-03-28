@@ -8,7 +8,7 @@ const Dashboard = () => {
     <div className="mt-24 px-6 space-y-6">
       
       {/* TOP ROW */}
-      <div className="grid grid-cols-12 gap-6 items-start border">
+      <div className="grid grid-cols-12 gap-6 items-start">
         
         {/* Time Schedule (Left) */}
         <div className="col-span-8">
