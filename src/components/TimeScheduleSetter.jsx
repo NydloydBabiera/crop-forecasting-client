@@ -41,29 +41,29 @@ const TimeScheduleSetter = () => {
   }, []);
 
   return (
-    <div className="max-w-md space-y-4">
+    <div className="max-w-md space-y-4 mt-2">
       {/* Input + Button */}
-      <div className="flex gap-2">
-        <input
-          type="number"
-          placeholder="Enter minutes"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <button
-          onClick={handleSubmit}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white
-                       hover:bg-blue-700 active:scale-95"
-        >
-          Save
-        </button>
-      </div>
 
       {/* Display GET API values */}
       <div className="rounded-lg border p-3">
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="Enter minutes"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="flex-1 rounded-lg border border-gray-300 px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <button
+            onClick={handleSubmit}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white
+                       hover:bg-blue-700 active:scale-95"
+          >
+            Save
+          </button>
+        </div>
         <h3 className="mb-2 font-semibold">Scheduled Readings</h3>
         {data.length === 0 ? (
           <p className="text-sm text-gray-500">No data</p>

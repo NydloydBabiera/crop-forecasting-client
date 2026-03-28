@@ -96,7 +96,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
       const result = await res.json();
       setUser(result);
       setIsModalOpen(false);
-      onSelectedFarmer(result); 
+      onSelectedFarmer(result);
     } catch (error) {
       console.error("Error adding farmer:", error);
     }
@@ -106,7 +106,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
     // console.log("🚀 ~ handleSelectUser ~ selectedUser:", selectedUser)
     await activateFarmer(selectedUser.farmer_information_id);
     setUser(selectedUser);
-    onSelectedFarmer(selectedUser); 
+    onSelectedFarmer(selectedUser);
     setIsModalOpenList(false);
   };
 
@@ -119,7 +119,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
     <>
       {/* Top Right Card */}
       <div className="bg-white shadow-md rounded-2xl p-4 border w-full">
-        <h2 className="text-lg font-semibold mb-2">User Info</h2>
+        <h2 className="text-lg font-semibold mb-2">Farmer Info</h2>
 
         {user ? (
           <div className="text-sm space-y-1">
@@ -141,24 +141,26 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
           <p className="text-gray-500">No Farmer selected</p>
         )}
 
-        <button
-          onClick={() => {
-            setIsModalOpenList(true);
-          }}
-          className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition"
-        >
-          Select Farmer
-        </button>
-        {isReport && (
+        <div className="flex gap-4">
           <button
             onClick={() => {
-              setIsModalOpen(true);
+              setIsModalOpenList(true);
             }}
             className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition"
           >
-            Add Farmer
+            Select Farmer
           </button>
-        )}
+          {isReport && (
+            <button
+              onClick={() => {
+                setIsModalOpen(true);
+              }}
+              className="mt-3 w-full bg-blue-500 text-white py-1.5 rounded-lg hover:bg-blue-600 transition"
+            >
+              Add Farmer
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Modal */}
@@ -197,8 +199,23 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                 }
                 className="w-full border rounded-lg p-2"
               />
-
               <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Contact Information"
+                value={tempUser?.contactInformation || ""}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, ""); // remove non-digits
+                  setTempUser({
+                    ...tempUser,
+                    contactInformation: value,
+                  });
+                }}
+                className="w-full border rounded-lg p-2"
+              />
+
+              {/* <input
                 type="number"
                 placeholder="Contact Information"
                 // value={tempUser.contactInformation}
@@ -209,7 +226,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                   })
                 }
                 className="w-full border rounded-lg p-2"
-              />
+              /> */}
             </div>
 
             <div className="flex justify-end gap-2 mt-5">

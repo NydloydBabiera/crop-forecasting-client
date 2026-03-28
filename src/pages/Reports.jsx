@@ -244,12 +244,12 @@ const Reports = () => {
 
         return {
           cells: [
-            extraLabel || row.crop_name || "",
+            extraLabel || row?.crop_name || "",
             row.temperature,
             row.humidity,
             row.soil_moisture,
             row.npk,
-            row.created_at ? new Date(row.created_at).toLocaleString() : "",
+            row?.created_at ? new Date(row?.created_at).toLocaleString() : "",
           ],
           rowType: row.row_type,
           extraLabel, // 👈 stored if you need it later
@@ -301,7 +301,7 @@ const Reports = () => {
           const rowIndex = data.row.index;
           const row = data1[rowIndex];
 
-          const isAverage = !row.crop_name && !row.created_at; // 👈 detect avg row
+          const isAverage = !row?.crop_name && !row?.created_at; // 👈 detect avg row
 
           if (isAverage) {
             data.cell.styles.fillColor = [255, 255, 0]; // yellow
@@ -330,7 +330,7 @@ const Reports = () => {
           ],
         ],
         body: data2.map((row) => [
-          row.created_at ? new Date(row.created_at).toLocaleString() : "",
+          row?.created_at ? new Date(row?.created_at).toLocaleString() : "",
           row.temperature,
           row.humidity,
           row.soil_moisture,
@@ -350,7 +350,7 @@ const Reports = () => {
         startY: 30,
         head: [tableColumn],
         body: crops.map((crop) => [
-          crop.name,
+          crop?.name,
           `${crop.temperature[0]} - ${crop.temperature[1]}`,
           `${crop.humidity[0]} - ${crop.humidity[1]}`,
           `${crop.soilMoisture[0]} - ${crop.soilMoisture[1]}`,
