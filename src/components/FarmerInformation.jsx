@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import React from "react";
+import { createPortal } from "react-dom";
 export default function FarmerInformation({ isReport, onSelectedFarmer }) {
   // const users = [
   //   {
@@ -31,6 +32,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
   const [tempUser, setTempUser] = useState(user);
   const [farmers, setFarmers] = useState([]);
   const [value, setValue] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   const handleChange = (e) => {
     // Remove all non-numeric characters
@@ -110,9 +112,26 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
     setIsModalOpenList(false);
   };
 
+  const handleDelete = async (farmerId) => {
+    const query = new URLSearchParams({
+      farmerId: farmerId || "",
+    }).toString();
+    console.log("🚀 ~ handleDelete ~ query:", query);
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/deleteFarmer?${query}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      fetchFarmers();
+    } catch (error) {
+      console.error("Error deleting farmer:", error);
+    }
+  };
+
   useEffect(() => {
     fetchFarmers();
     deactivateFarmer();
+    setMounted(true);
   }, []);
 
   return (
@@ -165,8 +184,8 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
 
       {/* Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
+        <div className="fixed inset-0 z-[9999] bg-black/40">
+          <div className="absolute inset-0 flex items-center justify-center">
             <h2 className="text-lg font-semibold mb-4">Edit User Info</h2>
 
             <div className="space-y-3">
@@ -248,38 +267,53 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
         </div>
       )}
       {/* List MODAL */}
-      {isModalOpenList && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
-            <h2 className="text-lg font-semibold mb-4">Select Farmer</h2>
+      {isModalOpenList &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
+              <h2 className="text-lg font-semibold mb-4">Select Farmer</h2>
 
-            <div className="max-h-60 overflow-y-auto space-y-2">
-              {farmers.map((u) => (
-                <div
-                  key={u.id}
-                  onClick={() => handleSelectUser(u)}
-                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {farmers.map((u) => (
+                  <div
+                    key={u.id}
+                    onClick={() => handleSelectUser(u)}
+                    className="p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="font-medium">{u.full_name}</p>
+                      <p className="text-xs text-gray-500">{u.farm_name}</p>
+                      <p className="text-xs text-gray-500">
+                        {u.contact_information}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(u.farmer_information_id);
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => setIsModalOpenList(false)}
+                  className="px-4 py-1.5 border rounded-lg"
                 >
-                  <p className="font-medium">{u.full_name}</p>
-                  <p className="text-xs text-gray-500">{u.farm_name}</p>
-                  <p className="text-xs text-gray-500">
-                    {u.contact_information}
-                  </p>
-                </div>
-              ))}
+                  Close
+                </button>
+              </div>
             </div>
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setIsModalOpenList(false)}
-                className="px-4 py-1.5 border rounded-lg"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
