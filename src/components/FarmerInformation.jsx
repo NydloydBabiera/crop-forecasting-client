@@ -183,23 +183,24 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
       </div>
 
       {/* Add Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] bg-black/40">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <h2 className="text-lg font-semibold mb-4">Edit User Info</h2>
+      {isModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+             <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
+              <h2 className="text-lg font-semibold mb-4">Edit User Info</h2>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Farm name / Farmer"
-                // value={tempUser.fullName}
-                onChange={(e) =>
-                  setTempUser({ ...tempUser, fullName: e.target.value })
-                }
-                className="w-full border rounded-lg p-2"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Farm name / Farmer"
+                  // value={tempUser.fullName}
+                  onChange={(e) =>
+                    setTempUser({ ...tempUser, fullName: e.target.value })
+                  }
+                  className="w-full border rounded-lg p-2"
+                />
 
-              {/* <input
+                {/* <input
                 type="text"
                 placeholder="Farm Name"
                 // value={tempUser.farmName}
@@ -209,32 +210,32 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                 className="w-full border rounded-lg p-2"
               /> */}
 
-              <input
-                type="text"
-                placeholder="Address"
-                // value={tempUser.address}
-                onChange={(e) =>
-                  setTempUser({ ...tempUser, address: e.target.value })
-                }
-                className="w-full border rounded-lg p-2"
-              />
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Contact Information"
-                value={tempUser?.contactInformation || ""}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, ""); // remove non-digits
-                  setTempUser({
-                    ...tempUser,
-                    contactInformation: value,
-                  });
-                }}
-                className="w-full border rounded-lg p-2"
-              />
+                <input
+                  type="text"
+                  placeholder="Address"
+                  // value={tempUser.address}
+                  onChange={(e) =>
+                    setTempUser({ ...tempUser, address: e.target.value })
+                  }
+                  className="w-full border rounded-lg p-2"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="Contact Information"
+                  value={tempUser?.contactInformation || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
+                    setTempUser({
+                      ...tempUser,
+                      contactInformation: value,
+                    });
+                  }}
+                  className="w-full border rounded-lg p-2"
+                />
 
-              {/* <input
+                {/* <input
                 type="number"
                 placeholder="Contact Information"
                 // value={tempUser.contactInformation}
@@ -246,31 +247,32 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
                 }
                 className="w-full border rounded-lg p-2"
               /> */}
-            </div>
+              </div>
 
-            <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-1.5 rounded-lg border"
-              >
-                Cancel
-              </button>
+              <div className="flex justify-end gap-2 mt-5">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-1.5 rounded-lg border"
+                >
+                  Cancel
+                </button>
 
-              <button
-                onClick={handleAddFarmer}
-                className="px-4 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Save
-              </button>
+                <button
+                  onClick={handleAddFarmer}
+                  className="px-4 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
       {/* List MODAL */}
       {isModalOpenList &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center ">
             <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
               <h2 className="text-lg font-semibold mb-4">Select Farmer</h2>
 
