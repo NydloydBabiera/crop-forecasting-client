@@ -185,7 +185,7 @@ export default function FarmerInformation({ isReport, onSelectedFarmer }) {
       {/* Add Modal */}
       {isModalOpen &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center ">
              <div className="bg-white rounded-2xl p-5 w-[400px] shadow-xl">
               <h2 className="text-lg font-semibold mb-4">Edit User Info</h2>
 
